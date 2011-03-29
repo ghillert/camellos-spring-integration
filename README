@@ -1,0 +1,9 @@
+Camellos si - A Spring Integration Example 
+=======================================
+
+This project is based on an Apache Camel example I created some time ago. Please
+read the respective blog entry for details: 
+
+http://hillert.blogspot.com/2009/09/camellos-discovering-apache-camel-ii.html
+
+This Spring Integration based example should behave the same way. 
