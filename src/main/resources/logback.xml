@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<configuration>
+
+  <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+    <layout class="ch.qos.logback.classic.PatternLayout">
+      <pattern>%d %5p | %t | %-55logger{55} | %m | %n</pattern>
+    </layout>
+  </appender>
+
+  <logger name="org.springframework.integration">
+    <level value="TRACE"/>
+  </logger>
+  <logger name="org.springframework">
+    <level value="WARN"/>
+  </logger>
+
+  <root>
+    <level value="INFO"/>
+    <appender-ref ref="CONSOLE"/>
+  </root>
+
+</configuration>

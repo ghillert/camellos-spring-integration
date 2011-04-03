@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:integration="http://www.springframework.org/schema/integration"
+	xmlns:integration-file="http://www.springframework.org/schema/integration/file"
+	xmlns:integration-ftp="http://www.springframework.org/schema/integration/ftp"
+	xmlns:ftpserver="http://mina.apache.org/ftpserver/spring/v1"
+	xmlns:amq="http://activemq.apache.org/schema/core"
+	xsi:schemaLocation="
+       http://www.springframework.org/schema/beans            http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+       http://www.springframework.org/schema/integration      http://www.springframework.org/schema/integration/spring-integration-2.0.xsd
+       http://www.springframework.org/schema/integration/ftp  http://www.springframework.org/schema/integration/ftp/spring-integration-ftp-2.0.xsd
+       http://www.springframework.org/schema/integration/file http://www.springframework.org/schema/integration/file/spring-integration-file-2.0.xsd
+       http://mina.apache.org/ftpserver/spring/v1             http://mina.apache.org/ftpserver/ftpserver-1.0.xsd
+       http://activemq.apache.org/schema/core                 http://activemq.apache.org/schema/core/activemq-core.xsd">
+
+    <!-- Embedded FTP Server -->
+
+	<ftpserver:server id="ftpServer" max-logins="10"
+		anon-enabled="true" max-anon-logins="5" max-login-failures="3"
+		login-failure-delay="20">
+		<ftpserver:listeners>
+			<ftpserver:nio-listener name="default" port="3333"
+				local-address="localhost" />
+		</ftpserver:listeners>
+		<ftpserver:file-user-manager file="users.properties"
+			encrypt-passwords="clear" />
+	</ftpserver:server>
+
+    <!-- Little Helper Bean, by default the embedded FTP won't start automatically
+         and the cleanest way to tart it through the Spring context is by creating
+         a custom bean that implements the DisposableBean interface and starts 
+         the server at bean initialization -->
+	<bean class="com.hillert.camellos.FtpServerStarter" id="ftpWrapper">
+		<property name="FTPServer" ref="ftpServer" />
+	</bean>
+
+	<!-- Route Definition -->
+
+	<integration-file:inbound-channel-adapter 
+		id="inboxFileInput" directory="file:data/inbox">
+		<integration:poller id="poller" fixed-delay="5000" />
+	</integration-file:inbound-channel-adapter>
+
+	<integration-file:file-to-bytes-transformer id="convertToBytes"
+		                     input-channel="inboxFileInput" 
+		                     output-channel="inboxDataChannel" 
+		                     delete-files="true" />
+
+	<integration:transformer id="compress"
+	                         input-channel="inboxDataChannel"
+		                     output-channel="outboundFtpChannel" 
+		                     ref="zipTransformer" method="zipIt" />
+
+	<integration-ftp:outbound-channel-adapter
+	                         id="transferViaFtp"
+		                     channel="outboundFtpChannel" 
+		                     remote-directory="/"
+		                     session-factory="ftpClientFactory" />
+
+    <!-- End of Route -->
+    
+    <!-- Channel Defiinitions -->
+    
+    <integration:channel id="inboxDataChannel"/>
+    <integration:channel id="outboundFtpChannel" />
+    
+    
+    
+    <!-- Transformer that compresses a byte-array-based input message using a 
+         ZipOutputStream -->
+	<bean id="zipTransformer" class="com.hillert.camellos.transformer.ZipTransformer" />
+
+	<bean id="ftpClientFactory" depends-on="ftpWrapper" 
+		class="org.springframework.integration.ftp.session.DefaultFtpSessionFactory">
+		<property name="host" value="localhost" />
+		<property name="port" value="3333" />
+		<property name="username" value="admin" />
+		<property name="password" value="secret" />
+	</bean>
+	
+</beans>
+

@@ -1,9 +1,32 @@
-Camellos si - A Spring Integration Example 
+Camellos SI - A Spring Integration Example 
 =======================================
 
-This project is based on an Apache Camel example I created some time ago. Please
+This project is based on an Apache Camel example that I created some time ago. Please
 read the respective blog entry for details: 
 
 http://hillert.blogspot.com/2009/09/camellos-discovering-apache-camel-ii.html
 
-This Spring Integration based example should behave the same way. 
+To start this example application using the distributable zip file:
+
+java -jar camellos-si.jar
+
+To compile the Maven project and create the distributable zip file:
+
+mvn clean package assembly:assembly
+
+The source code is available via Github:
+
+git://github.com/ghillert/camellos-spring-integration.git
+
+For more details, please visit: 
+
+http://hillert.blogspot.com/
+
+====Changes=====================================================================
+
+2011-Apr-02 Added a Zip transformer and a simple Spring Integration route that 
+            polls a directory for files, zips them up and transfers them via FTP
+            to a remote FTP server (uses embedded FTP server).  
+2011-Apr-03 Created a distribution package using the 'maven-assembly-plugin' and 
+            the 'maven-shade-plugin'
+    
